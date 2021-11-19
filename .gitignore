@@ -1,0 +1,6 @@
+node_modules
+nohup.out
+.idea
+.vscode
+!.eslintrc.json
+.nyc_output
