@@ -17,7 +17,7 @@ module.exports = {
     development: {
         host: DB_HOST,
         port: DB_PORT,
-        name: DB_NAME + '_db_dev1'
+        name: DB_NAME + '_db_dev'
     },
     test: {
         host: DB_HOST,
