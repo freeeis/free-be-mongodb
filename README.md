@@ -1,5 +1,5 @@
 # free-be-mongodb
-This is the mongodb (mongoose) module for the FREE system backend. It cannot be used without the [EIS backend starter kit](https://www.npmjs.com/package/free-be-starter-kit).
+This is the mongodb (mongoose) module for the FreeEIS system backend. It cannot be used without the [EIS backend starter kit](https://www.npmjs.com/package/free-be-starter-kit).
 
 # Usage
 1. Download the [EIS backend starter kit](https://www.npmjs.com/package/free-be-starter-kit).
