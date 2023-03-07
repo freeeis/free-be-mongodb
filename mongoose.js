@@ -5,9 +5,6 @@ const mongoose = require('mongoose');
 const mongoosePaginate = require("./paginate.js");
 const beautifyUnique = require("mongoose-beautiful-unique-validation");
 
-mongoose.set('useFindAndModify', false);
-mongoose.set('useCreateIndex', true);
-mongoose.set('useUnifiedTopology', true);
 
 /**
  * 更新数据库索引。

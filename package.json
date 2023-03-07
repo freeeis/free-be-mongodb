@@ -7,7 +7,8 @@
   "license": "GPL-1.0-or-later",
   "private": false,
   "dependencies": {
-    "mongoose": "^5.7.7",
+    "bluebird": "^3.7.2",
+    "mongoose": "^7.0.0",
     "mongoose-beautiful-unique-validation": "^7.1.1",
     "mongoose-extend-schema": "^1.0.0"
   },
