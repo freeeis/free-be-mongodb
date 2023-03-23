@@ -104,7 +104,7 @@ module.exports = (app, mdl) => {
     app.logger.debug(`正在连接数据库(${process.env.NODE_ENV}): ${connectionString}`)
 
     const tryConnect = () => {
-        mongoose.connect(connectionString, { useNewUrlParser: true, autoIndex: false });//连接mongodb数据库
+        mongoose.connect(connectionString, { useNewUrlParser: true, autoIndex: config.autoCreateIndexes || false });//连接mongodb数据库
     }
     tryConnect();
 
@@ -228,8 +228,9 @@ module.exports = (app, mdl) => {
             if (index.length > 0) {
                 // 如果系统设置允许自动创建索引，则自动创建，否则报错提醒开发人员手动创建
                 if (config.autoCreateIndexes) {
-                    app.logger.warn(`自动创建索引：${model.collection.name}: ${index.map(idx => JSON.stringify(idx.path))}`);
-                    model.createIndexes();
+                    // 如果配置允许自动创建索引，则建立数据库连接时即可配置自动创建，而不需要这里人为创建
+                    // app.logger.warn(`自动创建索引：${model.collection.name}: ${index.map(idx => JSON.stringify(idx.path))}`);
+                    // model.createIndexes();
                 } else {
                     errorMsg = errorMsg || (model.modelName + ' 需要手动创建索引: \n');
                     for (let k = 0; k < index.length; ++k) {
@@ -537,6 +538,18 @@ module.exports = (app, mdl) => {
                         this.LastUpdateDate = new Date();
 
                     return next();
+                });
+
+                // customized hooks
+                const cusHooks = model.hooks || (app.__modelHooks && app.__modelHooks[mk]) || [];
+                cusHooks.forEach(hook => {
+                    if(!hook || !hook.hook || !hook.method || !hook.func) return;
+
+                    if(hook.hook === 'post') {
+                        schemaObject[schemaName].post(hook.method, hook.options, hook.func);
+                    } else if(hook.hook === 'pre') {
+                        schemaObject[schemaName].pre(hook.method, hook.options, hook.func);
+                    }
                 });
 
                 // const newModel = mongoose.model(`${mdl.name}_${mk}`, schemaObject[schemaName]);
