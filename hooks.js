@@ -1,7 +1,15 @@
 module.exports = {
     onAppReady: (app, mdl) => {
         app.use((req, res, next) => {
-            // add some function to the response
+            /**
+             * Get an existing CURD operation and update it
+             * 
+             * @param {String} n The name of the model
+             * @param {String} o Method
+             * @param {Number|Function} i Skip how many ops
+             * @param {Function} cb Callback
+             * @returns {Promise} 
+             */
             res.updateCURD = async function (n, o, i, cb) {
                 if(!n || !o || !res.locals.CURD || res.locals.CURD.length <= 0) return;
 
