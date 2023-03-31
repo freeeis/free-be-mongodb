@@ -4,30 +4,10 @@ const DB_NAME = 'freeeis'
 
 module.exports = {
     forceDate: false,
-    default: {
-        host: DB_HOST,
-        port: DB_PORT,
-        name: DB_NAME
-    },
-    production: {
-        host: DB_HOST,
-        port: DB_PORT,
-        name: DB_NAME + '_db_prod'
-    },
-    development: {
-        host: DB_HOST,
-        port: DB_PORT,
-        name: DB_NAME + '_db_dev'
-    },
-    test: {
-        host: DB_HOST,
-        port: DB_PORT,
-        name: DB_NAME + '_db_test'
-    },
-    sit: {
-        host: DB_HOST,
-        port: DB_PORT,
-        name: DB_NAME + '_db_sit'
-    },
-    dependencies: []
+    
+    dependencies: [],
+
+    dbHost: DB_HOST,
+    dbPort: DB_PORT,
+    dbName: DB_NAME,
 }

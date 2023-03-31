@@ -96,9 +96,8 @@ const beautifyUnique = require("mongoose-beautiful-unique-validation");
 
 module.exports = (app, mdl) => {
     const config = mdl.config;
-    let envConfig = Object.merge({}, config.default, config[process.env.NODE_ENV])
 
-    const connectionString = `mongodb://${envConfig.host}:${envConfig.port}/${envConfig.name}`;
+    const connectionString = `mongodb://${config.dbHost}:${config.dbPort}/${config.dbName}`;
 
     //  mongoose.Promise = global.Promise;//如果有promise的问题，可以用这个试试
     app.logger.debug(`正在连接数据库(${process.env.NODE_ENV}): ${connectionString}`)
@@ -487,7 +486,7 @@ module.exports = (app, mdl) => {
 
                 schemaObject[schemaName].plugin(mongoosePaginate);
                 schemaObject[schemaName].plugin(beautifyUnique, {
-                    defaultMessage: envConfig.defaultBeautifyUniqueMessage || 'The field is not unique!'
+                    defaultMessage: config.defaultBeautifyUniqueMessage || 'The field is not unique!'
                 });
 
                 /**
