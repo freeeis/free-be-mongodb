@@ -640,13 +640,8 @@ module.exports = (app, mdl) => {
 
                 const existOp = res.locals.CURD.find(m => m.method === method && m.model === model)
                 if (res.locals.CURD.length <= 0 || !overwrite || !existOp) {
-                    // const filter = Object.clone(res.locals.filter) || {};
-                    // const options = Object.clone(res.locals.options) || {};
-                    // const fields = Object.clone(res.locals.fields) || [];
-                    // const body = Object.clone(res.locals.body) || {};
-                    // const doc = Object.clone(res.locals.doc) || {};
                     const filter = Object.assign({}, res.locals.filter);
-                    const options = Object.assign({}, res.locals.options);
+                    const options = res.locals.options ? res.locals.options : Object.assign({}, res.locals.options);
                     const fields = Object.assign([], res.locals.fields);
                     const body = Object.assign({}, res.locals.body);
                     const doc = Object.assign({}, res.locals.doc);
