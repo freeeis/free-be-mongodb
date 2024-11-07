@@ -4,3 +4,5 @@ nohup.out
 .vscode
 !.eslintrc.json
 .nyc_output
+
+.DS_Store
