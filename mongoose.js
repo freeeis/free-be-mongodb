@@ -103,7 +103,7 @@ module.exports = (app, mdl) => {
     app.logger.debug(`正在连接数据库(${process.env.NODE_ENV}): ${connectionString}`)
 
     const tryConnect = () => {
-        mongoose.connect(connectionString, { useNewUrlParser: true, autoIndex: config.autoCreateIndexes || false });//连接mongodb数据库
+        mongoose.connect(connectionString, { autoIndex: config.autoCreateIndexes || false });//连接mongodb数据库
     }
     tryConnect();
 
