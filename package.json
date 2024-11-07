@@ -1,6 +1,6 @@
 {
   "name": "free-be-mongodb",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "The built-in mongodb (mongoose) driver module of EIS.",
   "main": "index.js",
   "author": "zhiquan",
