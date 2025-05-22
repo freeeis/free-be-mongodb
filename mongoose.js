@@ -464,7 +464,8 @@ module.exports = (app, mdl) => {
                 }
                 VIRTUALS = VIRTUALS || [];
 
-                schemaObject[schemaName] = new mongoose.Schema(model.schemaDefinition, { __v: false });
+                // disable the minimize option, so we can save empty objects, like Permission for account etc.
+                schemaObject[schemaName] = new mongoose.Schema(model.schemaDefinition, { __v: false, minimize: false });
 
                 // indexes
                 for (let i = 0; i < INDEXES.length; i += 1) {
