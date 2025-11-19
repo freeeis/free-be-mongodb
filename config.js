@@ -10,4 +10,6 @@ module.exports = {
     dbHost: DB_HOST,
     dbPort: DB_PORT,
     dbName: DB_NAME,
+    user: '',
+    pwd: '',
 }
