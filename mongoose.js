@@ -101,7 +101,7 @@ module.exports = (app, mdl) => {
     const connectionString = `mongodb://${userAndPwd}${config.dbHost}:${config.dbPort}/${config.dbName}`;
 
     //  mongoose.Promise = global.Promise;//如果有promise的问题，可以用这个试试
-    app.logger.debug(`正在连接数据库(${process.env.NODE_ENV}): ${connectionString}`)
+    app.logger.debug(`正在连接数据库(${process.env.NODE_ENV}): mongodb://***:***@${config.dbHost}:${config.dbPort}/${config.dbName}`)
 
     const tryConnect = () => {
         mongoose.connect(connectionString, { autoIndex: config.autoCreateIndexes || false });//连接mongodb数据库
