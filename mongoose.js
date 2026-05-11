@@ -516,7 +516,7 @@ module.exports = (app, mdl) => {
                 });
                 schemaObject[schemaName].pre("updateOne", function (next) {
                     if (forceDate || !this.LastUpdateDate)
-                        this.LastUpdateDate = new Date();
+                        this.set({ LastUpdateDate: new Date() });
 
                     this.Saved = true;
 
@@ -524,7 +524,7 @@ module.exports = (app, mdl) => {
                 });
                 schemaObject[schemaName].pre("updateMany", function (next) {
                     if (forceDate || !this.LastUpdateDate)
-                        this.LastUpdateDate = new Date();
+                        this.set({ LastUpdateDate: new Date() });
 
                     this.Saved = true;
 
