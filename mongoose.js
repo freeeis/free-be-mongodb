@@ -337,7 +337,7 @@ module.exports = (app, mdl) => {
                 type: "String",
                 unique: true,
                 default: function () {
-                    return this._id.toString();
+                    return this._id ? this._id.toString() : undefined;
                 },
                 // set: function () {
                 //     return this._id.toString();
@@ -467,6 +467,21 @@ module.exports = (app, mdl) => {
 
                 // disable the minimize option, so we can save empty objects, like Permission for account etc.
                 schemaObject[schemaName] = new mongoose.Schema(model.schemaDefinition, { __v: false, minimize: false });
+                schemaObject[schemaName].pre("findOneAndUpdate", function (next) {
+                    if (!this.getOptions().upsert)
+                        return next();
+
+                    const update = this.getUpdate();
+                    const setOnInsert = update.$setOnInsert || {};
+                    const objectId = setOnInsert._id || new mongoose.Types.ObjectId();
+
+                    setOnInsert._id = objectId;
+                    setOnInsert.id = setOnInsert.id || objectId.toString();
+                    update.$setOnInsert = setOnInsert;
+                    this.setUpdate(update);
+
+                    return next();
+                });
 
                 // indexes
                 for (let i = 0; i < INDEXES.length; i += 1) {
