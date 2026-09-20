@@ -104,7 +104,7 @@ module.exports = (app, mdl) => {
     app.logger.debug(`正在连接数据库(${process.env.NODE_ENV}): mongodb://***:***@${config.dbHost}:${config.dbPort}/${config.dbName}`)
 
     const tryConnect = () => {
-        mongoose.connect(connectionString, { autoIndex: config.autoCreateIndexes || false });//连接mongodb数据库
+        mongoose.connect(connectionString, { autoIndex: false });//连接mongodb数据库
     }
     tryConnect();
 
@@ -122,20 +122,12 @@ module.exports = (app, mdl) => {
         for (let i = 0; i < models.length; i += 1) {
             let allFields = [];
             let model = db.models[models[i]];
-            // 获取数据库定义中的索引
-            let index = [];
 
             const CheckFields = function (m) {
                 const keys = Object.keys(m.schema.paths) || [];
                 for (let j = 0; j < keys.length; j += 1) {
                     let p = keys[j];
                     let pp = m.schema.paths[p];
-                    if (pp._index !== null) {
-                        // pp._index.Name = p;
-                        // index.push(pp._index);
-                        // index.push(pp.path);
-                        index.push(pp);
-                    }
 
                     if (pp.schema && pp.schema.paths) {
                         CheckFields(pp);
@@ -153,97 +145,39 @@ module.exports = (app, mdl) => {
                     }
                 }
 
-                // custimized indexes
-                if (m.schema._indexes) {
-                    for (let j = 0; j < m.schema._indexes.length; j += 1) {
-                        const _ind = m.schema._indexes[j];
-
-                        if (_ind && Array.isArray(_ind) && _ind[0]) {
-                            index.push({
-                                path: _ind[0],
-                                _index: _ind[1] || {}
-                            });
-                        }
-                    }
-                }
             };
 
             CheckFields(model);
 
-            if (!index || index.length <= 0) continue;
-
-            // 获取数据库实际所有的索引
-            let rIndex = 0;
             try {
-                rIndex = await ((model.collection).indexes());
-            } catch (e) {
-                app.logger.error(e.stack);
-            }
-            if (!rIndex || rIndex.length < 0) continue;
+                await model.init();
+                const { toDrop, toCreate } = await model.diffIndexes({ indexOptionsToCreate: true });
 
-            for (let j = 0; j < rIndex.length; j += 1) {
-                // TODO: 假设索引中只有一个key，目前没问题，但以后有风险！
-                // const key = Object.keys(rIndex[j].key)[0];
-                // if (key === '_id') continue;
-                // const index_ind = index.findIndex((pp) => { return pp.path === key; });
-                // if (index_ind >= 0) {
-                //     index.splice(index_ind, 1);
-                //     continue;
-                // }
-
-                const keys = Object.keys(rIndex[j].key);
-                if (keys && keys.length === 1 && keys[0] === '_id') continue;
-                const index_ind = index.findIndex((pp) => {
-                    if (typeof pp.path === 'string' && keys.length === 1) {
-                        return pp.path === keys[0];
-                    } else if (typeof pp.path === 'object' && keys.length > 1) {
-                        const defKeys = Object.keys(pp.path);
-                        const dupKeys = [];
-                        for (let k = 0; k < keys.length; k += 1) {
-                            const key = keys[k];
-
-                            if (defKeys.indexOf(key) >= 0) {
-                                dupKeys.push(key);
-                            }
-                        }
-
-                        if (defKeys.length === dupKeys.length) {
-                            return true;
-                        }
-                        return false;
-                    } else {
-                        return false;
-                    }
-                });
-                if (index_ind >= 0) {
-                    index.splice(index_ind, 1);
-                    continue;
-                }
-
-                // 删除已经不存在的index
-                await model.collection.dropIndex(rIndex[j].name);
-            }
-
-            // 到这里，如果index列表里还有，说明需要添加新index，但不能自动添加，因为生产环境会影响性能。提示去手动添加。
-            if (index.length > 0) {
-                // 如果系统设置允许自动创建索引，则自动创建，否则报错提醒开发人员手动创建
                 if (config.autoCreateIndexes) {
-                    // 如果配置允许自动创建索引，则建立数据库连接时即可配置自动创建，而不需要这里人为创建
-                    // app.logger.warn(`自动创建索引：${model.collection.name}: ${index.map(idx => JSON.stringify(idx.path))}`);
-                    // model.createIndexes();
-                } else {
-                    errorMsg = errorMsg || (model.modelName + ' 需要手动创建索引: \n');
-                    for (let k = 0; k < index.length; ++k) {
-                        const ind = index[k];
-                        errorMsg += 'db.' + model.collection.name + '.createIndex(' + (typeof ind.path === 'string' ? `{'${ind.path}': 1}` : JSON.stringify(ind.path)) + ', {unique: ' + !!ind._index.unique + ', sparse: ' + !!ind._index.sparse + '})\n';
+                    for (const name of toDrop) {
+                        await model.collection.dropIndex(name);
+                    }
+                    if (toCreate.length > 0) {
+                        await model.createIndexes({ toCreate });
+                    }
+                } else if (toDrop.length > 0 || toCreate.length > 0) {
+                    errorMsg += model.modelName + ' 需要手动同步索引: \n';
+                    const collection = `db.getCollection(${JSON.stringify(model.collection.name)})`;
+                    for (const name of toDrop) {
+                        errorMsg += `${collection}.dropIndex(${JSON.stringify(name)})\n`;
+                    }
+                    for (const [keys, options] of toCreate) {
+                        errorMsg += `${collection}.createIndex(${JSON.stringify(keys)}, ${JSON.stringify(options)})\n`;
                     }
                 }
+            } catch (error) {
+                error.message = `${model.modelName}: ${error.message}`;
+                throw error;
             }
         }
 
         if (errorMsg) {
-            app.logger.error(errorMsg);
-            process.exit(-1);
+            throw new Error(errorMsg);
         }
     };
 
@@ -466,7 +400,7 @@ module.exports = (app, mdl) => {
                 VIRTUALS = VIRTUALS || [];
 
                 // disable the minimize option, so we can save empty objects, like Permission for account etc.
-                schemaObject[schemaName] = new mongoose.Schema(model.schemaDefinition, { __v: false, minimize: false });
+                schemaObject[schemaName] = new mongoose.Schema(model.schemaDefinition, { __v: false, minimize: false, autoIndex: false });
                 schemaObject[schemaName].pre("findOneAndUpdate", function (next) {
                     if (!this.getOptions().upsert)
                         return next();
